@@ -96,6 +96,10 @@ T1049 – System Network Connections Discovery
 ---
 
 ## Results
+![Screenshot 2026-01-25 214944](https://github.com/user-attachments/assets/f4b19768-b215-4d26-a491-85bfb86aa2b5)
+![Screenshot 2026-01-25 214945](https://github.com/user-attachments/assets/97febfb9-b001-4f95-af9e-2d443c07f05e)
+
+
 
 This SOC lab demonstrates practical security monitoring and detection engineering skills including:
 

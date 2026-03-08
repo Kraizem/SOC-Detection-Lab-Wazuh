@@ -70,18 +70,13 @@ Alert tuning was performed to reduce false positives and improve detection accur
 
 ## MITRE ATT&CK Mapping
 
-Detected activities were mapped to the MITRE ATT&CK framework.
+## MITRE ATT&CK Mapping
 
-Examples:
-
-Port Scanning  
-T1046 – Network Service Discovery
-
-Suspicious Command Execution  
-T1059 – Command and Scripting Interpreter
-
-Network Enumeration  
-T1049 – System Network Connections Discovery
+| Technique | ID | Use Case | Detection Method |
+|---|---|---|---|
+| Network Service Discovery | [T1046](https://attack.mitre.org/techniques/T1046/) | UC1 – Network Reconnaissance Detection | Custom Wazuh rule triggered on Nmap scan patterns in network logs |
+| Command and Scripting Interpreter | [T1059](https://attack.mitre.org/techniques/T1059/) | UC2 – Suspicious Command Execution | Sysmon Event ID 1 (Process Creation) forwarded to Wazuh; alert on `whoami`, `net user`, `ipconfig` |
+| System Network Connections Discovery | [T1049](https://attack.mitre.org/techniques/T1049/) | UC3 – Suspicious Network Activity | Wazuh correlation of Sysmon network events and process logs for abnormal outbound connections |
 
 ---
 

@@ -9,6 +9,9 @@ The lab simulates attacker activities such as network reconnaissance and suspici
 
 ## Lab Architecture
 
+<img width="3200" height="2400" alt="SOC Architecture Diagram" src="https://github.com/user-attachments/assets/e55f0bca-22b1-4ae7-a642-6cd8922018b2" />
+
+
 The SOC lab environment consists of:
 
 - Windows Endpoint

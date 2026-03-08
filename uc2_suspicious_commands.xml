@@ -1,0 +1,65 @@
+<!-- 
+  Use Case 2 – Suspicious Command Execution
+  MITRE ATT&CK: T1059 – Command and Scripting Interpreter
+  Attack Method: Manual execution of recon commands on Windows endpoint
+  Monitoring Tool: Sysmon (Event ID 1 – Process Creation)
+  Commands monitored: whoami, net user, ipconfig /all
+-->
+
+<group name="suspicious_commands,mitre_t1059,sysmon,">
+
+  <!-- Rule 1: whoami – attacker checking current user context -->
+  <rule id="100010" level="10">
+    <if_group>windows</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)whoami\.exe</field>
+    <field name="win.system.eventID">^1$</field>
+    <description>Sysmon: whoami executed – Possible privilege/identity enumeration (T1059)</description>
+    <mitre>
+      <id>T1059</id>
+      <id>T1033</id>
+    </mitre>
+    <group>recon,enumeration,</group>
+  </rule>
+
+  <!-- Rule 2: net user – attacker enumerating local user accounts -->
+  <rule id="100011" level="11">
+    <if_group>windows</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)net\.exe|net1\.exe</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)net\s+user</field>
+    <field name="win.system.eventID">^1$</field>
+    <description>Sysmon: net user executed – Local user account enumeration detected (T1059)</description>
+    <mitre>
+      <id>T1059</id>
+      <id>T1087</id>
+    </mitre>
+    <group>recon,enumeration,account_discovery,</group>
+  </rule>
+
+  <!-- Rule 3: ipconfig /all – attacker gathering network configuration -->
+  <rule id="100012" level="10">
+    <if_group>windows</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)ipconfig\.exe</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)/all</field>
+    <field name="win.system.eventID">^1$</field>
+    <description>Sysmon: ipconfig /all executed – Network configuration enumeration detected (T1059)</description>
+    <mitre>
+      <id>T1059</id>
+      <id>T1016</id>
+    </mitre>
+    <group>recon,enumeration,network_discovery,</group>
+  </rule>
+
+  <!-- Rule 4: Composite – multiple recon commands in short timeframe (high severity) -->
+  <rule id="100013" level="14">
+    <if_sid>100010,100011,100012</if_sid>
+    <same_source_ip />
+    <timeframe>120</timeframe>
+    <frequency>2</frequency>
+    <description>Multiple recon commands executed in short timeframe – Likely attacker enumeration session (T1059)</description>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+    <group>recon,attack,correlated,</group>
+  </rule>
+
+</group>

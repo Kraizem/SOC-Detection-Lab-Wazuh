@@ -40,6 +40,34 @@ These logs were forwarded to Wazuh for monitoring and detection.
 
 ## Attack Simulation
 
+Use Case 1 – Suspicious Command Execution
+
+Attack Method
+Manual command execution on the Windows endpoint.
+
+Example commands:
+
+whoami
+net user
+ipconfig /all
+
+Monitoring Tool
+Events recorded by Sysmon.
+
+MITRE Technique
+T1059 – Command and Scripting Interpreter
+--------------------------------------------
+Use Case 2 – Suspicious Network Activity
+
+Activity
+Monitoring abnormal outbound network connections.
+
+Detection
+Correlation of network logs and process activity through Wazuh.
+
+MITRE Technique
+T1049 – System Network Connections Discovery
+
 ### Port Scanning
 
 Network reconnaissance was simulated using Nmap.
@@ -72,16 +100,13 @@ Alert tuning was performed to reduce false positives and improve detection accur
 
 Detected activities were mapped to the MITRE ATT&CK framework.
 
-Examples:
+## MITRE ATT&CK Mapping
 
-Port Scanning  
-T1046 – Network Service Discovery
-
-Suspicious Command Execution  
-T1059 – Command and Scripting Interpreter
-
-Network Enumeration  
-T1049 – System Network Connections Discovery
+| Technique | ID | Use Case | Detection Method |
+|---|---|---|---|
+| Network Service Discovery | [T1046](https://attack.mitre.org/techniques/T1046/) | UC1 – Network Reconnaissance Detection | Custom Wazuh rule triggered on Nmap scan patterns in network logs |
+| Command and Scripting Interpreter | [T1059](https://attack.mitre.org/techniques/T1059/) | UC2 – Suspicious Command Execution | Sysmon Event ID 1 (Process Creation) forwarded to Wazuh; alert on `whoami`, `net user`, `ipconfig` |
+| System Network Connections Discovery | [T1049](https://attack.mitre.org/techniques/T1049/) | UC3 – Suspicious Network Activity | Wazuh correlation of Sysmon network events and process logs for abnormal outbound connections |
 
 ---
 

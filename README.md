@@ -40,8 +40,6 @@ These logs were forwarded to Wazuh for monitoring and detection.
 
 ## Attack Simulation
 
-## Attack Simulation
-
 Three attack scenarios were simulated to test the detection capabilities of the SOC lab environment.
 
 ---

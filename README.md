@@ -51,7 +51,146 @@ nmap -sS -p- <target-ip>
 This activity generated logs which were analyzed by Wazuh.
 
 ---
+## Endpoint Monitoring
+## Use Cases
 
+---
+
+### Use Case 1 – Network Reconnaissance Detection
+
+**MITRE ATT&CK:** [T1046 – Network Service Discovery](https://attack.mitre.org/techniques/T1046/)
+
+**Description:**
+An attacker performs network reconnaissance to discover open ports and running services on the target Windows endpoint using Nmap. This is typically one of the first steps in an attack chain.
+
+**Attack Simulation:**
+
+```bash
+nmap -sS -p- <target-ip>
+```
+
+**What Happens:**
+- Nmap sends SYN packets across all 65,535 ports
+- The Windows endpoint receives a high volume of connection attempts in a short timeframe
+- Wazuh picks up the abnormal traffic pattern from network and firewall logs
+
+**Log Sample (Wazuh Alert):**
+```json
+{
+  "rule": {
+    "id": "100003",
+    "level": 14,
+    "description": "Multiple connection rejections from same source – Possible full port scan (nmap -p-)"
+  },
+  "data": {
+    "srcip": "192.168.1.100",
+    "action": "DROP",
+    "frequency": "50+ in 60 seconds"
+  },
+  "mitre": {
+    "technique": "Network Service Discovery",
+    "id": "T1046"
+  }
+}
+```
+
+**Detection Logic:**
+- Custom Wazuh rule `100003` fires when 50+ connection rejections occur from the same source IP within 60 seconds
+- Alert level set to **14 (high)** to trigger immediate SOC attention
+
+---
+
+### Use Case 2 – Suspicious Command Execution
+
+**MITRE ATT&CK:** [T1059 – Command and Scripting Interpreter](https://attack.mitre.org/techniques/T1059/)
+
+**Description:**
+An attacker who has gained access to the Windows endpoint manually executes system enumeration commands to gather information about the environment — current user, local accounts, and network configuration.
+
+**Attack Simulation:**
+
+```cmd
+whoami
+net user
+ipconfig /all
+```
+
+**What Happens:**
+- Sysmon (Event ID 1 – Process Creation) captures each command execution
+- Logs are forwarded to the Wazuh Manager
+- Custom rules match on process name and command-line arguments
+
+**Log Sample (Sysmon Event ID 1 → Wazuh Alert):**
+```json
+{
+  "rule": {
+    "id": "100011",
+    "level": 11,
+    "description": "Sysmon: net user executed – Local user account enumeration detected (T1059)"
+  },
+  "data": {
+    "win.eventdata.image": "C:\\Windows\\System32\\net.exe",
+    "win.eventdata.commandLine": "net user",
+    "win.system.eventID": "1",
+    "win.eventdata.user": "DESKTOP-XXX\\attacker"
+  },
+  "mitre": {
+    "technique": "Command and Scripting Interpreter",
+    "id": "T1059"
+  }
+}
+```
+
+**Detection Logic:**
+- Rule `100010` detects `whoami.exe` via Sysmon Event ID 1
+- Rule `100011` detects `net user` by matching process image and command-line arguments
+- Rule `100012` detects `ipconfig /all` by matching process image and `/all` flag
+- Composite rule `100013` fires at **level 14** if 2+ of these commands are executed within 120 seconds — indicating an active enumeration session
+
+---
+
+### Use Case 3 – Suspicious Network Activity
+
+**MITRE ATT&CK:** [T1049 – System Network Connections Discovery](https://attack.mitre.org/techniques/T1049/)
+
+**Description:**
+After initial enumeration, abnormal outbound network connections are observed originating from shell processes on the Windows endpoint. Wazuh correlates process activity with network logs to identify suspicious behavior.
+
+**What Was Monitored:**
+- Outbound connections to uncommon/suspicious ports (4444, 1337, 8888, etc.)
+- Shell processes (`cmd.exe`, `powershell.exe`) initiating network connections
+- High-frequency outbound connections from a single process
+
+**Log Sample (Sysmon Event ID 3 → Wazuh Alert):**
+```json
+{
+  "rule": {
+    "id": "100021",
+    "level": 11,
+    "description": "Sysmon: Shell process initiated outbound network connection – Suspicious activity (T1049)"
+  },
+  "data": {
+    "win.eventdata.image": "C:\\Windows\\System32\\cmd.exe",
+    "win.eventdata.destinationIp": "203.0.113.45",
+    "win.eventdata.destinationPort": "4444",
+    "win.eventdata.initiated": "true",
+    "win.system.eventID": "3"
+  },
+  "mitre": {
+    "technique": "System Network Connections Discovery",
+    "id": "T1049"
+  }
+}
+```
+
+**Detection Logic:**
+- Rule `100020` flags outbound connections to known suspicious ports
+- Rule `100021` flags any shell process (`cmd.exe`, `powershell.exe`, `wscript.exe`) making outbound connections
+- Rule `100022` fires when a single process makes 20+ outbound connections within 60 seconds
+- **Correlated rule `100023`** (level 15 – critical) fires when network activity is detected within 5 minutes of the recon commands from UC2 — identifying the full attack chain: **Enumeration → Lateral Movement**
+
+---
+---
 ## Detection Engineering
 
 Custom detection rules were created in Wazuh to detect:

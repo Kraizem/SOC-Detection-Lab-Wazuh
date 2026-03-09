@@ -271,15 +271,26 @@ Alert tuning was performed to reduce false positives and improve detection accur
 ---
 
 ## Results
-![Screenshot 2026-01-25 214944](https://github.com/user-attachments/assets/f4b19768-b215-4d26-a491-85bfb86aa2b5)
-![Screenshot 2026-01-25 214945](https://github.com/user-attachments/assets/97febfb9-b001-4f95-af9e-2d443c07f05e)
 
+### Wazuh Manager – Successful Startup
 
+![Wazuh v4.14.2 startup confirmation showing all services running](screenshots/Screenshot_2026-01-25_214945.jpeg)
 
-This SOC lab demonstrates practical security monitoring and detection engineering skills including:
+Wazuh v4.14.2 was successfully deployed and started on the Ubuntu server. All core services confirmed running including `wazuh-apid`, `wazuh-analysisd`, `wazuh-remoted`, `wazuh-logcollector`, and `wazuh-modulesd`. The manager is fully operational and ready to receive logs from the Windows endpoint agent.
 
-- Log analysis
-- Threat detection
-- Custom rule creation
-- Security monitoring
-- MITRE ATT&CK mapping
+---
+
+### Wazuh Dashboard – Live Alert Feed (Threat Hunting View)
+
+![Wazuh Dashboard showing 494 alerts from endpoint DESKTOP-6B015RT](screenshots/Screenshot_2026-01-25_214944.jpeg)
+
+The Wazuh Dashboard captured **494 alerts** from the monitored Windows endpoint (`DESKTOP-6B015RT`) over a 24-hour window. The alert feed shows a range of rule severities (levels 3–9) including:
+
+- **User account changes** (Rule 60110) — triggered during the `net user` command simulation
+- **Users Group Changed** (Rule 60170) — flagged during enumeration activity
+- **Service startup type changes** (Rule 61104) — detected during post-exploitation behavior
+- **CIS Benchmark violations** (Rules 19005–19009) — SCA policy compliance alerts
+
+This demonstrates that the Wazuh SIEM was actively monitoring endpoint activity and generating alerts mapped to real security events throughout the attack simulation.
+
+---

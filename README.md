@@ -40,15 +40,60 @@ These logs were forwarded to Wazuh for monitoring and detection.
 
 ## Attack Simulation
 
-### Port Scanning
+## Attack Simulation
 
-Network reconnaissance was simulated using Nmap.
+Three attack scenarios were simulated to test the detection capabilities of the SOC lab environment.
 
-Example command:
+---
 
+### 1. Network Reconnaissance – Port Scanning (UC1)
+
+Network reconnaissance was simulated using Nmap from a Kali Linux attacker machine targeting the Windows endpoint.
+
+**Command used:**
+```bash
 nmap -sS -p- <target-ip>
+```
 
-This activity generated logs which were analyzed by Wazuh.
+**Goal:** Discover open ports and running services on the target machine.
+
+This activity generated a high volume of connection attempts that were captured in firewall and network logs, then analyzed by Wazuh.
+
+---
+
+### 2. Suspicious Command Execution (UC2)
+
+After gaining access to the Windows endpoint, the following enumeration commands were manually executed via `cmd.exe`:
+
+**Commands used:**
+```cmd
+whoami
+net user
+ipconfig /all
+```
+
+| Command | Purpose |
+|---|---|
+| `whoami` | Identify current user context and privileges |
+| `net user` | Enumerate local user accounts on the machine |
+| `ipconfig /all` | Gather full network configuration details |
+
+These commands were captured by **Sysmon (Event ID 1 – Process Creation)** and forwarded to Wazuh for analysis.
+
+---
+
+### 3. Suspicious Network Activity (UC3)
+
+Abnormal outbound network connections were simulated to replicate post-compromise behavior such as C2 communication or lateral movement attempts.
+
+**Activity simulated:**
+- Outbound connections initiated from `cmd.exe` and `powershell.exe`
+- Connections targeting uncommon ports (4444, 1337, 8888)
+- High-frequency connection attempts from a single process
+
+These were captured by **Sysmon (Event ID 3 – Network Connection)** and correlated with the command execution activity from UC2 inside Wazuh to identify the full attack sequence.
+
+---
 
 ---
 ## Endpoint Monitoring

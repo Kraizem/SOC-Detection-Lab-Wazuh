@@ -10,7 +10,7 @@ The lab simulates three real-world attacker scenarios covering network reconnais
 
 ## Lab Architecture
 
-<img width="3200" height="2400" alt="SOC Architecture Diagram" src="https://github.com/user-attachments/assets/e89c7374-ab87-4e16-8164-41ed62a5fe1d" />
+![SOC Architecture Diagram](https://user-images.githubusercontent.com/229574965/559983858-e55f0bca-22b1-4ae7-a642-6cd8922018b2.png)
 
 The SOC lab environment consists of:
 
@@ -262,7 +262,7 @@ Alert tuning was performed to reduce false positives and improve detection accur
 
 ### Wazuh Manager – Successful Startup
 
-![Screenshot 2026-01-25 214945](https://github.com/user-attachments/assets/279bfd91-0125-4731-8764-bf116a61709f)
+![Wazuh v4.14.2 startup confirmation showing all services running](https://user-images.githubusercontent.com/229574965/559984513-97febfb9-b001-4f95-af9e-2d443c07f05e.jpeg)
 
 Wazuh v4.14.2 was successfully deployed and started on the Ubuntu server. All core services confirmed running including `wazuh-apid`, `wazuh-analysisd`, `wazuh-remoted`, `wazuh-logcollector`, and `wazuh-modulesd`. The manager is fully operational and ready to receive logs from the Windows endpoint agent.
 
@@ -270,7 +270,7 @@ Wazuh v4.14.2 was successfully deployed and started on the Ubuntu server. All co
 
 ### Wazuh Dashboard – Live Alert Feed (Threat Hunting View)
 
-![Screenshot 2026-01-25 214944](https://github.com/user-attachments/assets/8f67904d-4d56-4a1c-8a5a-3dc1e61b43c4)
+![Wazuh Dashboard showing 494 alerts from endpoint DESKTOP-6B015RT](https://user-images.githubusercontent.com/229574965/559984500-f4b19768-b215-4d26-a491-85bfb86aa2b5.jpeg)
 
 The Wazuh Dashboard captured **494 alerts** from the monitored Windows endpoint (`DESKTOP-6B015RT`) over a 24-hour window. The alert feed shows a range of rule severities (levels 3–9) including:
 

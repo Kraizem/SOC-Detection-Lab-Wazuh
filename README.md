@@ -274,7 +274,7 @@ Alert tuning was performed to reduce false positives and improve detection accur
 
 ### Wazuh Manager – Successful Startup
 
-![Wazuh v4.14.2 startup confirmation showing all services running](screenshots/Screenshot_2026-01-25_214945.jpeg)
+![Screenshot 2026-01-25 214945](https://github.com/user-attachments/assets/92bab6ed-48a1-4534-a683-6610c7c934f0)
 
 Wazuh v4.14.2 was successfully deployed and started on the Ubuntu server. All core services confirmed running including `wazuh-apid`, `wazuh-analysisd`, `wazuh-remoted`, `wazuh-logcollector`, and `wazuh-modulesd`. The manager is fully operational and ready to receive logs from the Windows endpoint agent.
 
@@ -282,7 +282,7 @@ Wazuh v4.14.2 was successfully deployed and started on the Ubuntu server. All co
 
 ### Wazuh Dashboard – Live Alert Feed (Threat Hunting View)
 
-![Wazuh Dashboard showing 494 alerts from endpoint DESKTOP-6B015RT](screenshots/Screenshot_2026-01-25_214944.jpeg)
+![Screenshot 2026-01-25 214944](https://github.com/user-attachments/assets/44e895f0-0f95-4bc6-b79a-5eeb2f5e590a)
 
 The Wazuh Dashboard captured **494 alerts** from the monitored Windows endpoint (`DESKTOP-6B015RT`) over a 24-hour window. The alert feed shows a range of rule severities (levels 3–9) including:
 

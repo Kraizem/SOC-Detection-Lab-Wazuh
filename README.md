@@ -70,8 +70,6 @@ Alert tuning was performed to reduce false positives and improve detection accur
 
 ## MITRE ATT&CK Mapping
 
-## MITRE ATT&CK Mapping
-
 | Technique | ID | Use Case | Detection Method |
 |---|---|---|---|
 | Network Service Discovery | [T1046](https://attack.mitre.org/techniques/T1046/) | UC1 – Network Reconnaissance Detection | Custom Wazuh rule triggered on Nmap scan patterns in network logs |

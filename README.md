@@ -1,36 +1,35 @@
 # SOC Detection Lab using Wazuh
 
 ## Project Overview
+
 This project demonstrates the implementation of a Security Operations Center (SOC) detection lab using Wazuh to monitor endpoint activity, analyze logs, detect suspicious behavior, and map alerts to the MITRE ATT&CK framework.
 
-The lab simulates attacker activities such as network reconnaissance and suspicious command execution.
+The lab simulates three real-world attacker scenarios covering network reconnaissance, suspicious command execution, and abnormal network activity — all detected and alerted through custom Wazuh rules.
 
 ---
 
 ## Lab Architecture
 
-<img width="3200" height="2400" alt="SOC Architecture Diagram" src="https://github.com/user-attachments/assets/e55f0bca-22b1-4ae7-a642-6cd8922018b2" />
-
+<img width="3200" height="2400" alt="SOC Architecture Diagram" src="https://github.com/user-attachments/assets/ef207e74-9136-4bbf-92f7-608ecb2df274" />
 
 The SOC lab environment consists of:
 
-- Windows Endpoint
-- Wazuh Agent
-- Wazuh Manager
-- Wazuh Indexer
-- Wazuh Dashboard
-- Sysmon for endpoint monitoring
+- **Windows Endpoint** — target machine running Sysmon
+- **Wazuh Agent** — installed on the Windows endpoint to collect logs
+- **Wazuh Manager** — receives and analyzes logs, applies detection rules
+- **Wazuh Indexer** — stores and indexes alert data
+- **Wazuh Dashboard** — visualizes alerts and supports threat hunting
 
-Logs from the Windows endpoint are forwarded to Wazuh for analysis and alert generation.
+Logs from the Windows endpoint are forwarded to the Wazuh Manager for analysis and alert generation.
 
 ---
 
 ## Endpoint Monitoring
 
-The Windows endpoint was configured with Sysmon to capture detailed system activity including:
+The Windows endpoint was configured with **Sysmon** to capture detailed system activity including:
 
-- Process creation
-- Network connections
+- Process creation (Event ID 1)
+- Network connections (Event ID 3)
 - Command execution
 - Windows Event Logs
 
@@ -40,13 +39,13 @@ These logs were forwarded to Wazuh for monitoring and detection.
 
 ## Attack Simulation
 
-Three attack scenarios were simulated to test the detection capabilities of the SOC lab environment.
+Three attack scenarios were simulated to test the detection capabilities of the SOC lab.
 
 ---
 
 ### 1. Network Reconnaissance – Port Scanning (UC1)
 
-Network reconnaissance was simulated using Nmap from a Kali Linux attacker machine targeting the Windows endpoint.
+Network reconnaissance was simulated using Nmap from an attacker machine targeting the Windows endpoint.
 
 **Command used:**
 ```bash
@@ -55,7 +54,7 @@ nmap -sS -p- <target-ip>
 
 **Goal:** Discover open ports and running services on the target machine.
 
-This activity generated a high volume of connection attempts that were captured in firewall and network logs, then analyzed by Wazuh.
+This activity generated a high volume of connection attempts captured in network and firewall logs, then analyzed by Wazuh.
 
 ---
 
@@ -89,12 +88,10 @@ Abnormal outbound network connections were simulated to replicate post-compromis
 - Connections targeting uncommon ports (4444, 1337, 8888)
 - High-frequency connection attempts from a single process
 
-These were captured by **Sysmon (Event ID 3 – Network Connection)** and correlated with the command execution activity from UC2 inside Wazuh to identify the full attack sequence.
+These were captured by **Sysmon (Event ID 3 – Network Connection)** and correlated with UC2 command execution activity inside Wazuh to identify the full attack sequence.
 
 ---
 
----
-## Endpoint Monitoring
 ## Use Cases
 
 ---
@@ -107,15 +104,9 @@ These were captured by **Sysmon (Event ID 3 – Network Connection)** and correl
 An attacker performs network reconnaissance to discover open ports and running services on the target Windows endpoint using Nmap. This is typically one of the first steps in an attack chain.
 
 **Attack Simulation:**
-
 ```bash
 nmap -sS -p- <target-ip>
 ```
-
-**What Happens:**
-- Nmap sends SYN packets across all 65,535 ports
-- The Windows endpoint receives a high volume of connection attempts in a short timeframe
-- Wazuh picks up the abnormal traffic pattern from network and firewall logs
 
 **Log Sample (Wazuh Alert):**
 ```json
@@ -139,7 +130,7 @@ nmap -sS -p- <target-ip>
 
 **Detection Logic:**
 - Custom Wazuh rule `100003` fires when 50+ connection rejections occur from the same source IP within 60 seconds
-- Alert level set to **14 (high)** to trigger immediate SOC attention
+- Alert level set to **14 (high)**
 
 ---
 
@@ -148,20 +139,14 @@ nmap -sS -p- <target-ip>
 **MITRE ATT&CK:** [T1059 – Command and Scripting Interpreter](https://attack.mitre.org/techniques/T1059/)
 
 **Description:**
-An attacker who has gained access to the Windows endpoint manually executes system enumeration commands to gather information about the environment — current user, local accounts, and network configuration.
+An attacker who has gained access to the Windows endpoint manually executes system enumeration commands to gather information about the environment.
 
 **Attack Simulation:**
-
 ```cmd
 whoami
 net user
 ipconfig /all
 ```
-
-**What Happens:**
-- Sysmon (Event ID 1 – Process Creation) captures each command execution
-- Logs are forwarded to the Wazuh Manager
-- Custom rules match on process name and command-line arguments
 
 **Log Sample (Sysmon Event ID 1 → Wazuh Alert):**
 ```json
@@ -188,7 +173,7 @@ ipconfig /all
 - Rule `100010` detects `whoami.exe` via Sysmon Event ID 1
 - Rule `100011` detects `net user` by matching process image and command-line arguments
 - Rule `100012` detects `ipconfig /all` by matching process image and `/all` flag
-- Composite rule `100013` fires at **level 14** if 2+ of these commands are executed within 120 seconds — indicating an active enumeration session
+- Composite rule `100013` fires at **level 14** if 2+ of these commands execute within 120 seconds
 
 ---
 
@@ -198,11 +183,6 @@ ipconfig /all
 
 **Description:**
 After initial enumeration, abnormal outbound network connections are observed originating from shell processes on the Windows endpoint. Wazuh correlates process activity with network logs to identify suspicious behavior.
-
-**What Was Monitored:**
-- Outbound connections to uncommon/suspicious ports (4444, 1337, 8888, etc.)
-- Shell processes (`cmd.exe`, `powershell.exe`) initiating network connections
-- High-frequency outbound connections from a single process
 
 **Log Sample (Sysmon Event ID 3 → Wazuh Alert):**
 ```json
@@ -228,25 +208,31 @@ After initial enumeration, abnormal outbound network connections are observed or
 
 **Detection Logic:**
 - Rule `100020` flags outbound connections to known suspicious ports
-- Rule `100021` flags any shell process (`cmd.exe`, `powershell.exe`, `wscript.exe`) making outbound connections
+- Rule `100021` flags any shell process making outbound connections
 - Rule `100022` fires when a single process makes 20+ outbound connections within 60 seconds
-- **Correlated rule `100023`** (level 15 – critical) fires when network activity is detected within 5 minutes of the recon commands from UC2 — identifying the full attack chain: **Enumeration → Lateral Movement**
+- **Correlated rule `100023`** (level 15 – critical) fires when network activity is detected within 5 minutes of the recon commands from UC2, identifying the full attack chain
 
 ---
----
+
 ## Detection Engineering
 
-Custom detection rules were created in Wazuh to detect:
+Custom detection rules were created in Wazuh to detect all three use cases. Rule files are located in the [`rules/`](./rules/) folder.
 
-- Port scanning attempts
-- Suspicious command execution
-- Unusual network connections
+| Rule File | Use Case | Rule IDs |
+|---|---|---|
+| `uc1_nmap_recon.xml` | Network Reconnaissance | 100001 – 100003 |
+| `uc2_suspicious_commands.xml` | Suspicious Command Execution | 100010 – 100013 |
+| `uc3_network_activity.xml` | Suspicious Network Activity | 100020 – 100023 |
 
 ---
 
 ## Alert Tuning
 
-Alert tuning was performed to reduce false positives and improve detection accuracy by adjusting rule thresholds and conditions.
+Alert tuning was performed to reduce false positives and improve detection accuracy by:
+
+- Adjusting rule frequency thresholds
+- Setting appropriate timeframe windows per rule
+- Using composite rules to correlate related events before alerting
 
 ---
 
@@ -262,11 +248,13 @@ Alert tuning was performed to reduce false positives and improve detection accur
 
 ## Technologies Used
 
-- Wazuh
-- Sysmon
-- Nmap
-- Windows Event Logs
-- MITRE ATT&CK Framework
+| Tool | Role |
+|---|---|
+| Wazuh 4.x | SIEM / Detection Engine |
+| Sysmon 13.x | Endpoint Telemetry |
+| Nmap | Attack Simulation (Reconnaissance) |
+| Windows Event Logs | Log Source |
+| MITRE ATT&CK Framework | Threat Mapping |
 
 ---
 
@@ -274,7 +262,7 @@ Alert tuning was performed to reduce false positives and improve detection accur
 
 ### Wazuh Manager – Successful Startup
 
-![Screenshot 2026-01-25 214945](https://github.com/user-attachments/assets/92bab6ed-48a1-4534-a683-6610c7c934f0)
+![Screenshot 2026-01-25 214945](https://github.com/user-attachments/assets/1f0b1a19-6923-42a9-8783-2e26743ca746)
 
 Wazuh v4.14.2 was successfully deployed and started on the Ubuntu server. All core services confirmed running including `wazuh-apid`, `wazuh-analysisd`, `wazuh-remoted`, `wazuh-logcollector`, and `wazuh-modulesd`. The manager is fully operational and ready to receive logs from the Windows endpoint agent.
 
@@ -282,7 +270,7 @@ Wazuh v4.14.2 was successfully deployed and started on the Ubuntu server. All co
 
 ### Wazuh Dashboard – Live Alert Feed (Threat Hunting View)
 
-![Screenshot 2026-01-25 214944](https://github.com/user-attachments/assets/44e895f0-0f95-4bc6-b79a-5eeb2f5e590a)
+![Screenshot 2026-01-25 214944](https://github.com/user-attachments/assets/5ef8955a-f53a-4f19-adab-9f688df32dc4)
 
 The Wazuh Dashboard captured **494 alerts** from the monitored Windows endpoint (`DESKTOP-6B015RT`) over a 24-hour window. The alert feed shows a range of rule severities (levels 3–9) including:
 
@@ -291,6 +279,15 @@ The Wazuh Dashboard captured **494 alerts** from the monitored Windows endpoint 
 - **Service startup type changes** (Rule 61104) — detected during post-exploitation behavior
 - **CIS Benchmark violations** (Rules 19005–19009) — SCA policy compliance alerts
 
-This demonstrates that the Wazuh SIEM was actively monitoring endpoint activity and generating alerts mapped to real security events throughout the attack simulation.
+This demonstrates that Wazuh was actively monitoring endpoint activity and generating alerts mapped to real security events throughout the attack simulation.
 
 ---
+
+## Skills Demonstrated
+
+- Log analysis and threat detection
+- Custom Wazuh rule creation and tuning
+- Endpoint monitoring with Sysmon
+- MITRE ATT&CK mapping
+- Detection engineering and alert correlation
+- SOC lab environment setup and configuration
